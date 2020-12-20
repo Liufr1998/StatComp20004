@@ -97,7 +97,6 @@ bicstr <- function(struct, type, xdim, bicdim,
 #' @examples
 #' \dontrun{
 #' library(biclust)
-#' library(QUBIC)
 #' 
 #' xdim <- c(300, 600)
 #' bicdim <- list(row=c(20,40,70), col=c(50,70,100))
@@ -110,8 +109,7 @@ bicstr <- function(struct, type, xdim, bicdim,
 #' rownames(x) <- paste0("Cell",1:nrow(x))
 #' colnames(x) <- paste0("Gene",1:ncol(x))
 #' 
-#' disc <- qudiscretize(x)
-#' res <- biclust::biclust(disc, method=BCBimax(), number=100)
+#' res <- biclust::biclust(x, method=BCCC())
 #' if(res@Number==0) bic.out <- NA
 #' if(res@Number!=0){
 #'   bic.out <- list()
@@ -126,7 +124,6 @@ bicstr <- function(struct, type, xdim, bicdim,
 #' accuracy(bic.out, bic.index, type)
 #' }
 #' @import biclust
-#' @import QUBIC
 #' @export
 accuracy <- function(bic.out, bic.index, bic.type){
   nclus <- length(bic.out$row)

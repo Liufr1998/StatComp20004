@@ -163,7 +163,6 @@ accuracy <- function(bic.out, bic.index, bic.type){
 We analyze a sample under monopoly structure with constant type's bicluster.
 ```{r}
 library(biclust)
-library(QUBIC)
 
 xdim <- c(300, 600)
 bicdim <- list(row=c(20,40,70), col=c(50,70,100))
@@ -176,17 +175,19 @@ x <- bicstr("mono.rc", type, xdim, bicdim, M, Me=Me)
 rownames(x) <- paste0("Cell",1:nrow(x))
 colnames(x) <- paste0("Gene",1:ncol(x))
 
-disc <- qudiscretize(x)
-res <- biclust::biclust(disc, method=BCBimax(), number=100)
-if(res@Number==0) bic.out <- NA
-if(res@Number!=0){
-  bic.out <- list()
-  for(jj in 1:res@Number){
-    bic <- biclust::bicluster(x, res)[[jj]]
-    bic.out[["row"]][[paste0("clus",jj)]] <- as.numeric(na.omit(as.numeric(unlist(strsplit(rownames(bic), split="Cell")))))
-    bic.out[["col"]][[paste0("clus",jj)]] <- as.numeric(na.omit(as.numeric(unlist(strsplit(colnames(bic), split="Gene")))))
+res <- biclust::biclust(x, method=BCCC())
+  if(res@Number==0) bic.out <- NA
+  if(res@Number!=0){
+    bic.out <- list()
+    for(jj in 1:res@Number){
+      bic <- biclust::bicluster(x, res)[[jj]]
+      bic.out[["row"]][[paste("clus",jj,sep="")]] <- 
+        as.numeric(na.omit(as.numeric(unlist(strsplit(rownames(bic), split="Cell")))))
+      bic.out[["col"]][[paste("clus",jj,sep="")]] <- 
+        as.numeric(na.omit(as.numeric(unlist(strsplit(colnames(bic), split="Gene")))))
+    }
   }
-}
+
 
 accuracy(bic.out, bic.index, type)
 ```
