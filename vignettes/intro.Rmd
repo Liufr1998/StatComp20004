@@ -1,0 +1,123 @@
+---
+title: "Introduction to Biclus"
+author: "Fengrong Liu SA20229004"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Biclus}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+__Biclus__ is a simple R package developed to generate a biclustering sample. Two functions are considered, namely, _bictype_ (generating a single bicluster of specified type which can be constant, add, multiple and linear type) and _bicstr_ (generating a bicluster sample in the specified structure which can be single, monopoly row and column and chessboard stucture).  
+
+## Different type of biclustering  
+
+The function _bictype_ only consider four bicluster types. The first one is constant bicluster which means each element is the same value. The second one is the bicluster based on additive model which means the difference between each sample is a constant. The third one is the bicluster based on multiple model which means the difference between each sample is a multiple. The fourth one is the bicluster based on the linear model which means the relationship between each sample is linear. In addition, we can also set the value of Me to consider noise.  
+
+The source R code for _bictype_ is as follows:
+```{r}
+bictype <- function(type, a, b, M, Mc=NA, Me=NA) {
+  if(type=="constant") x <- matrix(rep(rnorm(1)*M,a*b),nrow=a)
+  if(type=="add"){
+    x <- matrix(rep(rnorm(b)*M,a),nrow=a,byrow=T)
+    for(i in 2:a) x[i,] <- x[i,]+rep(rnorm(1),b)*Mc
+  }
+  if(type=="multi"){
+    x <- matrix(rep(rnorm(b)*M,a),nrow=a,byrow=T)
+    for(i in 2:a) x[i,] <- x[i,]*runif(1,0.5,1.5)
+  }
+  if(type=="linear"){
+    x <- matrix(rep(rnorm(b)*M,a),nrow=a,byrow=T)
+    for(i in 2:a) x[i,] <- x[i,]*runif(1,0.5,1.5)+rep(rnorm(1),b)*Mc
+  }
+  
+  if(!is.na(Me)) x <- x+matrix(rnorm(a*b)*Me,nrow=a)
+  x
+}
+```
+
+For example, there are four bicluster of these four types with 30 rows and 50 columns.  
+
+```{r}
+library(pheatmap)
+type <- c("constant","add","multi","linear")
+par(mfrow = c(2, 2))
+for(i in 1:4){
+  x <- bictype(type[i], 30, 50, 5, 2, 1.5)
+  pheatmap(x, show_colnames = F, show_rownames = F,
+           cluster_rows = F, cluster_cols = F)
+}
+
+```
+
+
+## Different structures of biclustering sample  
+
+The function _bicstr_ can generate three different bicluster structures. The first one is a sample only containing one bicluster. The second one is a sample with several biclusters and the rows and columns of different biclusters are independent of each other. The third one is a sample with several biclusters and they are arranged like a chessboard.
+
+The source R code for _bicstr_ is as follows:
+```{r}
+bicstr <- function(struct, type, xdim, bicdim,
+                   M, Mc=rep(NA,length(type)), Me=rep(NA,length(type))){
+  x <- matrix(rnorm(prod(xdim)), nrow=xdim[1])
+  
+  if(struct=="single") 
+    x[1:bicdim$row,1:bicdim$col] <- bictype(type, bicdim$row, bicdim$col, M, Mc, Me)
+  
+  if(struct=="mono.rc"){
+    d <- length(type)
+    s <- c(1,1)
+    for(i in 1:d){
+      x[s[1]:(s[1]+bicdim$row[i]-1),s[2]:(s[2]+bicdim$col[i]-1)] <-
+        bictype(type[i], bicdim$row[i], bicdim$col[i], M[i], Mc[i], Me[i])
+      s <- s+c(bicdim$row[i],bicdim$col[i])
+    }
+  }
+  
+  if(struct=="chessboard"){
+    s <- c(1,1)
+    t <- 0
+    for(i in 1:length(bicdim$row)){
+      s[2] <- 1
+      for (j in 1:length(bicdim$col)) {
+        t <- t+1
+        x[s[1]:(s[1]+bicdim$row[i]-1),s[2]:(s[2]+bicdim$col[j]-1)] <-
+          bictype(type[t], bicdim$row[i], bicdim$col[j], M[t], Mc[t], Me[t])
+        s[2] <- s[2]+bicdim$col[j]
+      }
+      s[1] <- s[1]+bicdim$row[i]
+    }
+  }
+  x
+}
+```
+
+For example, there are three structures with three constant biclusters.
+
+```{r}
+struct <- c("single", "mono.rc", "chessboard")
+xdim <- c(300, 600)
+bicdim <- list(row=c(20,40,70), col=c(50,70,100))
+type <- list(rep("constant",3), rep("constant",9))
+M <- list(rep(5,3), rep(5,9))
+Me <- list(rep(1.5,3), rep(1.5,9))
+
+x <- bicstr(struct[1], "constant", xdim, list(row=20,col=70), 5, Me=1.5)
+pheatmap(x, show_colnames = F, show_rownames = F,
+           cluster_rows = F, cluster_cols = F)
+for(i in 2:3){
+  x <- bicstr(struct[i], type[[i-1]], xdim, bicdim, M[[i-1]], Me=Me[[i-1]])
+  pheatmap(x, show_colnames = F, show_rownames = F,
+           cluster_rows = F, cluster_cols = F)
+}
+```
+
+
+
+
+
+
+
