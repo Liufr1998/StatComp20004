@@ -1,24 +1,4 @@
----
-title: "Introduction to Biclus"
-author: "Fengrong Liu SA20229004"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Introduction to Biclus}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
-
-## Overview
-
-__Biclus__ is a simple R package developed to generate a biclustering sample. Three functions are considered, namely, _bictype_ (generating a single bicluster of specified type which can be constant, add, multiple and linear type) and _bicstr_ (generating a bicluster sample in the specified structure which can be single, monopoly row and column and chessboard stucture). _accuracy_ is a function to analyze the result obtained from bicluster method.  
-
-## Different type of biclustering  
-
-The function _bictype_ only consider four bicluster types. The first one is constant bicluster which means each element is the same value. The second one is the bicluster based on additive model which means the difference between each sample is a constant. The third one is the bicluster based on multiple model which means the difference between each sample is a multiple. The fourth one is the bicluster based on the linear model which means the relationship between each sample is linear. In addition, we can also set the value of Me to consider noise.  
-
-The source R code for _bictype_ is as follows:
-```{r}
+## -----------------------------------------------------------------------------
 bictype <- function(type, a, b, M, Mc=NA, Me=NA) {
   if(type=="constant") x <- matrix(rep(rnorm(1)*M,a*b),nrow=a)
   if(type=="add"){
@@ -37,11 +17,8 @@ bictype <- function(type, a, b, M, Mc=NA, Me=NA) {
   if(!is.na(Me)) x <- x+matrix(rnorm(a*b)*Me,nrow=a)
   x
 }
-```
 
-For example, there are four bicluster of these four types with 30 rows and 50 columns.  
-
-```{r}
+## -----------------------------------------------------------------------------
 library(pheatmap)
 type <- c("constant","add","multi","linear")
 par(mfrow = c(2, 2))
@@ -51,15 +28,8 @@ for(i in 1:4){
            cluster_rows = F, cluster_cols = F)
 }
 
-```
 
-
-## Different structures of biclustering sample  
-
-The function _bicstr_ can generate three different bicluster structures. The first one is a sample only containing one bicluster. The second one is a sample with several biclusters and the rows and columns of different biclusters are independent of each other. The third one is a sample with several biclusters and they are arranged like a chessboard.  
-
-The source R code for _bicstr_ is as follows:
-```{r}
+## -----------------------------------------------------------------------------
 bicstr <- function(struct, type, xdim, bicdim,
                    M, Mc=rep(NA,length(type)), Me=rep(NA,length(type))){
   x <- matrix(rnorm(prod(xdim)), nrow=xdim[1])
@@ -93,11 +63,8 @@ bicstr <- function(struct, type, xdim, bicdim,
   }
   x
 }
-```
 
-For example, there are three structures with three constant biclusters.
-
-```{r}
+## -----------------------------------------------------------------------------
 struct <- c("single", "mono.rc", "chessboard")
 xdim <- c(300, 600)
 bicdim <- list(row=c(20,40,70), col=c(50,70,100))
@@ -113,15 +80,8 @@ for(i in 2:3){
   pheatmap(x, show_colnames = F, show_rownames = F,
            cluster_rows = F, cluster_cols = F)
 }
-```
 
-## Analyzing the bicluster's result  
-
-The function _accuracy_ output the matched true group and bicluster and their relevant information  
-
-The source R code for _accuracy_ is as follows:  
-
-```{r}
+## -----------------------------------------------------------------------------
 accuracy <- function(bic.out, bic.index, bic.type){
   nclus <- length(bic.out$row)
   ngroup <- length(bic.index$row)
@@ -157,11 +117,8 @@ accuracy <- function(bic.out, bic.index, bic.type){
   }
   out
 }
-```
 
-
-We analyze a sample under monopoly structure with constant type's bicluster.
-```{r}
+## -----------------------------------------------------------------------------
 library(biclust)
 library(QUBIC)
 
@@ -189,10 +146,4 @@ if(res@Number!=0){
 }
 
 accuracy(bic.out, bic.index, type)
-```
-
-According the result, we can see every bicluster corresponding the true group number and cluster number and inclusion rate of row and colunmn and their average.
-
-
-
 
